@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test, after } from "node:test";
 import { loadSkill, validTitle, clean } from "./core.ts";
 import { fakeSelector, generated } from "./test-fixtures.ts";
+import { selectTitle } from "./selector.ts";
 
 // Synthetic host only. These tests neither load a provider nor a session store.
 export function contract(label: string, install: (api: any, options: any) => void, omp = false) {
@@ -14,7 +15,7 @@ export function contract(label: string, install: (api: any, options: any) => voi
   const date = "2026-10-02";
   const title = `Session title integration + safe shutdown and validation - ${date}`;
   const answer = (text = title) => ({ role: "assistant", content: [{ type: "text", text: generated(text) }], stopReason: "stop" });
-  async function fixture(timeoutMs = 100) {
+  async function fixture(timeoutMs = 100, select: any = fakeSelector) {
     const skill = await loadSkill();
     const events = new Map<string, Function>();
     const commands = new Map<string, any>();
@@ -56,7 +57,7 @@ export function contract(label: string, install: (api: any, options: any) => voi
       },
     };
     const tracked: Promise<void>[] = [];
-    install(api, { track: (p: Promise<void>) => tracked.push(p), now: () => new Date(`${date}T12:00:00Z`), skill: async () => skill, timeoutMs, select: fakeSelector, ...(omp ? { stream } : {}) });
+    install(api, { track: (p: Promise<void>) => tracked.push(p), now: () => new Date(`${date}T12:00:00Z`), skill: async () => skill, timeoutMs, select, ...(omp ? { stream } : {}) });
     // Pi only automates fresh sessions (automaticByDefault: false), so the synthetic host starts as "new".
     events.get("session_start")?.({ type: "session_start", reason: "new" }, ctx);
     return { calls, names, displays, notes, ctx, skill, commands,
@@ -97,6 +98,20 @@ export function contract(label: string, install: (api: any, options: any) => voi
       assert.ok(system.includes("Preserve proper names and diacritics, and use ordinary hyphens"));
       assert.ok(system.includes("Selection is a later code step"));
     }
+  });
+  test(`${label}: auto title with Jev configured uses the Jev pick and sends only the synopsis`, async () => {
+    const seen: any[] = [];
+    const jev = (input: any, signal: AbortSignal) => selectTitle(input, signal, 100, {
+      auth: async () => "test-key",
+      fetch: async (url: any, init: any) => {
+        seen.push({ url, auth: init.headers.Authorization, body: init.body });
+        return new Response(JSON.stringify({ model: "jev-1.13.0", answers: { title: { type: "choice", choice: "c0", confidence: 0.9, probabilities: { c0: 0.9, skip: 0.1 } } } }));
+      },
+    });
+    const f = await fixture(100, jev); await f.emit("session_start"); await f.input("PRIVATE-TRANSCRIPT-MARKER please title this");
+    assert.equal(f.name(), title); assert.ok(f.notes[0].includes("source=jev; status=selected")); assert.ok(f.notes[0].includes("applied=true"));
+    assert.equal(seen.length, 1); assert.equal(seen[0].url, "https://api.typesafe.ai/v1/systemone"); assert.equal(seen[0].auth, "Bearer test-key");
+    assert.ok(!seen[0].body.includes("PRIVATE-TRANSCRIPT-MARKER"));
   });
   test(`${label}: manual standalone full skill suggestions, independent of name/automatic state`, async () => {
     const f = await fixture(); f.rename("My manual session name");

@@ -1,5 +1,5 @@
 // Native Pi adapter around the Titlewise skill.
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -53,8 +53,15 @@ interface State {
 }
 
 // A user-installed skill wins; otherwise the generic one bundled with the package.
+// The text goes into the system prompt, so refuse non-files and anything oversized.
 const bundledSkill = fileURLToPath(new URL("./skill/SKILL.md", import.meta.url));
-export const loadSkill = () => readFile(join(homedir(), ".agents/skills/titlewise/SKILL.md"), "utf8").catch(() => readFile(bundledSkill, "utf8"));
+const MAX_SKILL_BYTES = 64 * 1024;
+async function readSkill(file: string): Promise<string> {
+  const info = await stat(file);
+  if (!info.isFile() || info.size > MAX_SKILL_BYTES) throw new Error("unusable skill file");
+  return readFile(file, "utf8");
+}
+export const loadSkill = () => readSkill(join(homedir(), ".agents/skills/titlewise/SKILL.md")).catch(() => readSkill(bundledSkill));
 
 // Do not carry obvious credentials into a second request. This is deliberately
 // conservative, not a claim to recognize every secret in arbitrary prose.

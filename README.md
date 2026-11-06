@@ -11,9 +11,13 @@ Pi extension that names your sessions.
 pi install npm:@battlelamb/pi-titlewise
 ```
 
+## Works with or without Jev
+
+Auto-rename, `/titlewise`, the title checks and shutdown refresh behave the same either way; only the final pick differs.
+
 ## Jev (optional)
 
-If the `typesafe` provider is logged in (`pi auth print-api-key --provider typesafe` succeeds), [Jev](https://typesafe.ai) picks the best candidate. Without it, the first valid candidate is used. Nothing else changes.
+If the `typesafe` provider is logged in (`pi auth print-api-key --provider typesafe` succeeds), [Jev](https://typesafe.ai) picks the best candidate. Without it, the first valid candidate is used. Nothing else changes. See [SECURITY.md](SECURITY.md) for exactly what is sent.
 
 ## Notes
 

@@ -9,8 +9,9 @@
   "repository": { "type": "git", "url": "git+https://github.com/Battlelamb/pi-titlewise.git" },
   "homepage": "https://github.com/Battlelamb/pi-titlewise#readme",
   "bugs": { "url": "https://github.com/Battlelamb/pi-titlewise/issues" },
-  "files": ["index.ts", "core.ts", "candidates.ts", "selector.ts", "selector-auth.ts", "workspace.ts", "fresh-session.ts", "skill", "README.md", "CHANGELOG.md", "LICENSE"],
-  "scripts": { "test": "node --test adapter.test.ts selector.test.ts workspace.test.ts" },
+  "files": ["index.ts", "core.ts", "candidates.ts", "selector.ts", "selector-auth.ts", "workspace.ts", "fresh-session.ts", "skill", "README.md", "CHANGELOG.md", "SECURITY.md", "LICENSE"],
+  "scripts": { "test": "node --test adapter.test.ts selector.test.ts workspace.test.ts skill.test.ts" },
+  "publishConfig": { "access": "public" },
   "pi": { "extensions": ["./index.ts"] },
   "peerDependencies": { "@earendil-works/pi-coding-agent": "*" }
 }
