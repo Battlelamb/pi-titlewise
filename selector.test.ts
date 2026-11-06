@@ -278,7 +278,10 @@ test("candidates: manual Turkish/compact date exceptions, safe renderer, strict 
   assert.ok(rendered.includes(manual.candidates[1].title));
   assert.equal(parseEnvelope(JSON.stringify(manual), false, t => validTitle(t, date)), undefined);
   assert.equal(parseEnvelope(generated(titles[0].replace(date, "2026-10-15")), false, t => validTitle(t, date)), undefined);
-  assert.equal(parseEnvelope("```json\n" + generated(titles[0]) + "\n```", false, t => t), undefined);
+  // A single wrapping code fence is tolerated (small models add one); prose around it or around bare JSON is not.
+  assert.equal(parseEnvelope("```json\n" + generated(titles[0]) + "\n```", false, t => t)?.candidates.length, 1);
+  assert.equal(parseEnvelope("Here you go:\n```json\n" + generated(titles[0]) + "\n```", false, t => t), undefined);
+  assert.equal(parseEnvelope("```json\n" + generated(titles[0]) + "\n```\nDone.", false, t => t), undefined);
   assert.equal(parseEnvelope(JSON.stringify({ ...manual, candidates: Array(13).fill(manual.candidates[0]) }), true, t => t), undefined);
   assert.equal(parseEnvelope(JSON.stringify({ ...manual, topic: "x".repeat(601) }), true, t => t), undefined);
   assert.equal(parseEnvelope(JSON.stringify({ ...manual, candidates: [{ ...manual.candidates[0], title: "api_key=do-not-send" }] }), true, t => t), undefined);

@@ -15,7 +15,8 @@ export function candidateInstructions(manual: boolean): string {
 export function parseEnvelope(raw: string, manual: boolean, validate: (title: string) => string | undefined): Envelope | undefined {
   if (raw.length > 24000) return;
   let v: unknown;
-  try { v = JSON.parse(raw); } catch { return; }
+  // Models often wrap the JSON in a code fence despite the instruction.
+  try { v = JSON.parse(raw.trim().replace(/^```(?:json)?\s*([\s\S]*?)\s*```$/i, "$1")); } catch { return; }
   if (!record(v) || Object.keys(v).some(k => !["topic", "candidates", "preferences", "description", "tags", "suppressed"].includes(k)) ||
       typeof v.topic !== "string" || !v.topic.trim() || v.topic.length > 600 ||
       !Array.isArray(v.candidates) || !v.candidates.length || v.candidates.length > (manual ? 36 : 3) ||

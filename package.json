@@ -1,6 +1,6 @@
 {
   "name": "@battlelamb/pi-titlewise",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Auto-names Pi sessions and suggests multi-style titles with /titlewise. Picks with Jev when configured, falls back to the first valid candidate otherwise.",
   "license": "MIT",
   "author": "Battlelamb",

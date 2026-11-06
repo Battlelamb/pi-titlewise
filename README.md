@@ -21,7 +21,7 @@ If the `typesafe` provider is logged in (`pi auth print-api-key --provider types
 
 ## Notes
 
-- Candidates are generated with `openai/gpt-6-luna` when your registry has it, otherwise with the active model.
+- Candidates are always generated with your current active model. Jev (if configured) only picks among them; without Jev the first valid candidate is used. Small local reasoning models can be slow or miss the JSON format; a non-reasoning model of 4B+ works best.
 - Only a short generated synopsis and candidate titles go to Jev, never the raw transcript.
 - To customise prompts, install your own skill at `~/.agents/skills/titlewise/SKILL.md`; it overrides the bundled one.
 - Based on [claude-code-conversation-titler](https://github.com/Battlelamb/claude-code-conversation-titler) (MIT).

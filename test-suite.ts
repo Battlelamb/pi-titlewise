@@ -188,17 +188,15 @@ export function contract(label: string, install: (api: any, options: any) => voi
     assert.ok(Date.now() - before < 500); assert.equal(f.calls.length, 1);
     assert.ok(!f.notes.some(text => text.includes("applied=true")));
   });
-  test(`${label}: fast model failure falls back to the active model; total failure warns once`, async () => {
+  test(`${label}: generation uses only the active model; failure warns once`, async () => {
     if (omp) return; // the registry facade is Pi-only
-    const fast = { id: "fast-model" };
     const f = await fixture(); const used: string[] = [];
+    f.ctx.modelRegistry.find = () => { throw new Error("registry lookup must not run"); };
     const original = f.ctx.modelRegistry.streamSimple;
-    f.ctx.modelRegistry.find = () => fast;
-    f.ctx.modelRegistry.streamSimple = (m: any, c: any, o: any) => { used.push(m.id); return m === fast ? { result: async () => { throw new Error("logged out"); } } : original(m, c, o); };
+    f.ctx.modelRegistry.streamSimple = (m: any, c: any, o: any) => { used.push(m.id); return original(m, c, o); };
     await f.input();
-    assert.deepEqual(used, ["fast-model", "active-model"]); assert.equal(f.name(), title);
+    assert.deepEqual(used, ["active-model"]); assert.equal(f.name(), title);
     const g = await fixture();
-    g.ctx.modelRegistry.find = () => fast;
     g.ctx.modelRegistry.streamSimple = () => ({ result: async () => { throw new Error("down"); } });
     await g.input(); await g.input("A second real request that must not warn again");
     assert.equal(g.name(), undefined);

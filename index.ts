@@ -33,27 +33,16 @@ export default function titlewise(pi: ExtensionAPI, options: Options & { exec?: 
     },
     async generate(ctx, request) {
       if (!ctx.model) throw new Error("No active model");
-      // Physical model first, not the active virtual router: its cold route can outlast the title budget.
-      // Fall back to the active model when the fast one is missing, logged out, or errors.
-      const fast = ctx.modelRegistry.find?.("openai", "gpt-6-luna");
-      let failure: unknown = new Error("Generation failed");
-      for (const model of fast && fast !== ctx.model ? [fast, ctx.model] : [ctx.model]) {
-        try {
-          const result = await ctx.modelRegistry.streamSimple(model, {
-            messages: [
-              { role: "system", content: request.system, timestamp: Date.now() },
-              { role: "user", content: request.input, timestamp: Date.now() },
-            ],
-            tools: [],
-          }, { signal: request.signal, maxTokens: request.maxTokens }).result();
-          if (result.stopReason === "error" || result.stopReason === "aborted") throw new Error("Generation failed");
-          return assistantText(result);
-        } catch (error) {
-          if (request.signal.aborted) throw error;
-          failure = error;
-        }
-      }
-      throw failure;
+      // Always the active model: no hardcoded model, nothing to configure.
+      const result = await ctx.modelRegistry.streamSimple(ctx.model, {
+        messages: [
+          { role: "system", content: request.system, timestamp: Date.now() },
+          { role: "user", content: request.input, timestamp: Date.now() },
+        ],
+        tools: [],
+      }, { signal: request.signal, maxTokens: request.maxTokens }).result();
+      if (result.stopReason === "error" || result.stopReason === "aborted") throw new Error("Generation failed");
+      return assistantText(result);
     },
     show: content => pi.sendMessage({ customType: "titlewise", content, display: true }, { triggerTurn: false }),
     notify: (ctx, text) => ctx.ui.notify(text, "info"),
