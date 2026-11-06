@@ -1,0 +1,16 @@
+{
+  "name": "@battlelamb/pi-titlewise",
+  "version": "1.0.0",
+  "description": "Auto-names Pi sessions and suggests multi-style titles with /titlewise. Picks with Jev when configured, falls back to the first valid candidate otherwise.",
+  "license": "MIT",
+  "author": "Battlelamb",
+  "type": "module",
+  "keywords": ["pi-package", "pi", "pi-extension", "titles", "session-name"],
+  "repository": { "type": "git", "url": "git+https://github.com/Battlelamb/pi-titlewise.git" },
+  "homepage": "https://github.com/Battlelamb/pi-titlewise#readme",
+  "bugs": { "url": "https://github.com/Battlelamb/pi-titlewise/issues" },
+  "files": ["index.ts", "core.ts", "candidates.ts", "selector.ts", "selector-auth.ts", "workspace.ts", "fresh-session.ts", "skill", "README.md", "CHANGELOG.md", "LICENSE"],
+  "scripts": { "test": "node --test adapter.test.ts selector.test.ts workspace.test.ts" },
+  "pi": { "extensions": ["./index.ts"] },
+  "peerDependencies": { "@earendil-works/pi-coding-agent": "*" }
+}
